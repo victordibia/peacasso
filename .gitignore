@@ -2,9 +2,7 @@ output/
 peacasso/web/backend/files
 examples/experiment_results.json
 examples/data
-data
-codegaze/treesitter-languages
-treesitter-languages
+data  
 .DS_Store
 test.py
 experiments/data
