@@ -5,7 +5,7 @@ from pydantic.dataclasses import dataclass
 
 
 @dataclass
-class PromptConfig:
+class GeneratorConfig:
     """Configuration for a generation"""
 
     prompt: str

@@ -5,10 +5,10 @@ import os
 import torch
 import time
 
-from peacasso.datamodel import PromptConfig
+from peacasso.datamodel import GeneratorConfig
 
 
-class PromptGenerator:
+class ImageGenerator:
     """Generate image from prompt"""
 
     def __init__(
@@ -26,7 +26,7 @@ class PromptGenerator:
             use_auth_token=token,
         ).to(self.device)
 
-    def generate(self, config: PromptConfig) -> Image:
+    def generate(self, config: GeneratorConfig) -> Image:
         """Generate image from prompt"""
         prompt = [config.prompt] * config.num_images
         start_time = time.time()
