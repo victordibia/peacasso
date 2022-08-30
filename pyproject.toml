@@ -7,7 +7,7 @@ name = "Peacasso"
 authors = [
   { name="Victor Dibia", email="victor.dibia@gmail.com" },
 ]
-description = "Create with AI models"
+description = "UI tool to help you generate art (and experiment) with multimodal (text, image) AI models (stable diffusion)"
 readme = "README.md"
 license = { file="LICENSE" }
 requires-python = ">=3.7"
