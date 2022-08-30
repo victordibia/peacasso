@@ -35,14 +35,14 @@ You can also use the python api by running the following command:
 
 import os
 from dotenv import load_dotenv
-from peacasso.generator import PromptGenerator
-from peacasso.datamodel import PromptConfig
+from peacasso.generator import ImageGenerator
+from peacasso.datamodel import GeneratorConfig
 
 token = os.environ.get("HF_API_TOKEN")
-gen = PromptGenerator(token=token)
+gen = ImageGenerator(token=token)
 prompt = "A sea lion wandering the streets of post apocalyptic London"
 
-prompt_config = PromptConfig(
+prompt_config = GeneratorConfig(
     prompt=prompt,
     num_images=3,
     width=512,
