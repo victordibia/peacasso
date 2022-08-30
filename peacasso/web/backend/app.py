@@ -4,15 +4,15 @@ import zipfile
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import os
-from peacasso.generator import PromptGenerator
+from peacasso.generator import ImageGenerator
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from peacasso.datamodel import PromptConfig
+from peacasso.datamodel import GeneratorConfig
 import hashlib
 
 # # load token from .env variable
 hf_token = os.environ.get("HF_API_TOKEN")
-generator = PromptGenerator(token=hf_token)
+generator = ImageGenerator(token=hf_token)
 
 app = FastAPI()
 # allow cross origin requests for testing on localhost:800* ports only
@@ -45,7 +45,7 @@ api.mount("/files", StaticFiles(directory=files_static_root, html=True), name="f
 
 
 @api.post("/generate")
-def generate(prompt_config: PromptConfig) -> str:
+def generate(prompt_config: GeneratorConfig) -> str:
     """Generate an image given some prompt"""
 
     result = None
