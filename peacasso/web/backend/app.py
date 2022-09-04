@@ -4,12 +4,13 @@ import zipfile
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import os
-from codegaze.codegaze.utils import base64_to_pil
 from peacasso.generator import ImageGenerator
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from peacasso.datamodel import GeneratorConfig
 import hashlib
+
+from peacasso.utils import base64_to_pil
 
 # # load token from .env variable
 hf_token = os.environ.get("HF_API_TOKEN")

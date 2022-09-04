@@ -1,7 +1,7 @@
 from dataclasses import asdict
 from torch import autocast
 from PIL import Image
-
+from typing import List
 # from diffusers import StableDiffusionPipeline
 
 import os
@@ -38,10 +38,10 @@ class ImageGenerator:
             results = self.pipe(**asdict(config))
         return results
 
-    def list_cuda(self) -> list[int]:
+    def list_cuda(self) -> List[int]:
         """List available cuda devices
         Returns:
-            list[int]: List of available cuda devices
+            List[int]: List of available cuda devices
         """
         available_gpus = [i for i in range(torch.cuda.device_count())]
         return available_gpus

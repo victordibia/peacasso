@@ -1,6 +1,6 @@
 # from dataclasses import dataclass
 from dataclasses import field
-from typing import Any, List, Literal, Optional, Union
+from typing import Any, List,  Optional, Union
 from pydantic.dataclasses import dataclass
 
 
@@ -10,7 +10,7 @@ class GeneratorConfig:
 
     prompt: Union[str, List[str]]
     num_images: int = 1
-    mode: Literal["prompt", "image", "mask"] = "prompt"
+    mode: str = "prompt"   # prompt, image, mask
     height: Optional[int] = 512
     width: Optional[int] = 512
     num_inference_steps: Optional[int] = 50

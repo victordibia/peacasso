@@ -1,7 +1,7 @@
 # based on https://github.com/huggingface/diffusers/tree/main/src/diffusers/pipelines/stable_diffusion
 import inspect
 import time
-from typing import List, Literal, Optional, Union
+from typing import List, Optional, Union
 import PIL
 import torch
 import numpy as np
@@ -70,7 +70,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
     def __call__(
         self,
         prompt: Union[str, List[str]],
-        mode: Literal["prompt", "image", "mask"] = "prompt",
+        mode: str = "prompt",
         height: Optional[int] = 512,
         width: Optional[int] = 512,
         num_inference_steps: Optional[int] = 50,
