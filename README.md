@@ -1,6 +1,6 @@
 # Peacasso
 
-Peacasso is a UI tool to help you generate art (and experiment) with multimodal (text, image) AI models (stable diffusion).
+Peacasso [Beta] is a UI tool to help you generate art (and experiment) with multimodal (text, image) AI models (stable diffusion).
 
 ![](docs/images/screenpc.png)
 
@@ -61,7 +61,7 @@ for i, image in enumerate(result["images"]):
 - [x] Command line interface
 - [x] UI Features. Query models with multiple parametrs
   - [x] Text prompting
-  - [ ] Image based prompting
+  - [x] Image based prompting
   - [ ] Image inpainting (masking)
   - [ ] Latent space exploration
 - [ ] Curation/sharing experiment results
