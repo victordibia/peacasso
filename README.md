@@ -6,11 +6,15 @@ Peacasso [Beta] is a UI tool to help you generate art (and experiment) with mult
 
 ## Why Use Peacasso?
 
-Because a nice UI and great workflow can make exploring stable diffusion models and even boost creativity! But seriously, here are the things that make Peacasson different so far:
+![](docs/images/peacasso.gif)
 
-- Easy installation. Instead of cobbling together command line scripts, Peacasso provides a pip install flow and a UI that supports basic operartions
-- UI for basic operations. The current implementation of Peacasso provides a UI for basic operations - text and image based prompting,
-- Python API with support for experimentation features (e.g. saving intermediate images in the sampling loop, etc.)
+Because you deserve a nice UI and great workflow that makes exploring stable diffusion models fun! But seriously, here are a few things that make Peacasson interesting:
+
+- **Easy installation**. Instead of cobbling together command line scripts, Peacasso provides a pip install flow and a UI that supports a set of carefully selected default operartions.
+- **UI with good defaults**. The current implementation of Peacasso provides a UI for basic operations - text and image based prompting, remixing generated images as prompts, model parameter selection.
+- **Python API**. While the UI is the focus here, there is an underlying python api which will bake in experimentation features (e.g. saving intermediate images in the sampling loop, exploring model explanations etc. . see roadmap below).
+
+Clearly, Peacasso might not be for those interested in low level code.
 
 ## Requirements and Installation
 
@@ -57,6 +61,8 @@ prompt_config = GeneratorConfig(
     height=512,
     guidance_scale=7.5,
     num_inference_steps=50,
+    mode="prompt",
+    return_intermediates=True,
 )
 
 result = gen.generate(prompt_config)
@@ -72,10 +78,12 @@ for i, image in enumerate(result["images"]):
   - [x] Image based prompting
   - [ ] Editor (for inpainting and outpainting possibly)
   - [ ] Latent space exploration
-- [ ] Curation/sharing experiment results
+- [ ]
 - [ ] Experimentation tools
   - [x] Save intermediate images in the sampling loop
+  - [ ] Prompt recommendation tools
   - [ ] Model explanations
+  - [ ] Curation/sharing experiment results
 
 ## Acknowledgement
 
