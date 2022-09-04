@@ -1,11 +1,15 @@
+from dataclasses import asdict
 from torch import autocast
 from PIL import Image
-from diffusers import StableDiffusionPipeline
+
+# from diffusers import StableDiffusionPipeline
+
 import os
 import torch
 import time
 
 from peacasso.datamodel import GeneratorConfig
+from peacasso.pipelines import StableDiffusionPipeline
 
 
 class ImageGenerator:
@@ -15,10 +19,11 @@ class ImageGenerator:
         self,
         model: str = "CompVis/stable-diffusion-v1-4",
         token: str = os.environ.get("HF_API_TOKEN"),
+        cuda_device: int = 0,
     ) -> None:
 
         assert token is not None, "HF_API_TOKEN environment variable must be set."
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = f"cuda:{cuda_device}" if torch.cuda.is_available() else "cpu"
         self.pipe = StableDiffusionPipeline.from_pretrained(
             model,
             revision="fp16",
@@ -28,15 +33,15 @@ class ImageGenerator:
 
     def generate(self, config: GeneratorConfig) -> Image:
         """Generate image from prompt"""
-        prompt = [config.prompt] * config.num_images
-        start_time = time.time()
-        with autocast(self.device):
-            images = self.pipe(
-                prompt,
-                width=config.width,
-                height=config.height,
-                guidance_scale=config.guidance_scale,
-                num_inference_steps=config.num_inference_steps,
-            )["sample"]
-        elapsed_time = time.time() - start_time
-        return {"images": images, "time": elapsed_time}
+        config.prompt = [config.prompt] * config.num_images
+        with autocast("cuda" if torch.cuda.is_available() else "cpu"):
+            results = self.pipe(**asdict(config))
+        return results
+
+    def list_cuda(self) -> list[int]:
+        """List available cuda devices
+        Returns:
+            list[int]: List of available cuda devices
+        """
+        available_gpus = [i for i in range(torch.cuda.device_count())]
+        return available_gpus
