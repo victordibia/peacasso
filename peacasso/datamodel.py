@@ -1,6 +1,6 @@
 # from dataclasses import dataclass
 from dataclasses import field
-from typing import Optional
+from typing import Any, List, Literal, Optional, Union
 from pydantic.dataclasses import dataclass
 
 
@@ -8,11 +8,16 @@ from pydantic.dataclasses import dataclass
 class GeneratorConfig:
     """Configuration for a generation"""
 
-    prompt: str
+    prompt: Union[str, List[str]]
     num_images: int = 1
-    width: int = 512
-    height: int = 512
-    guidance_scale: float = 7.5
-    num_inference_steps: int = 50
-
- 
+    mode: Literal["prompt", "image", "mask"] = "prompt"
+    height: Optional[int] = 512
+    width: Optional[int] = 512
+    num_inference_steps: Optional[int] = 50
+    guidance_scale: Optional[float] = 7.5
+    eta: Optional[float] = 0.0
+    # generator: Optional[Any] = None
+    output_type: Optional[str] = "pil"
+    strength: float = 0.8
+    init_image: Any = None
+    return_intermediates: bool = False
