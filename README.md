@@ -4,6 +4,14 @@ Peacasso [Beta] is a UI tool to help you generate art (and experiment) with mult
 
 ![](docs/images/screenpc.png)
 
+## Why Use Peacasso?
+
+Because a nice UI and great workflow can make exploring stable diffusion models and even boost creativity! But seriously, here are the things that make Peacasson different so far:
+
+- Easy installation. Instead of cobbling together command line scripts, Peacasso provides a pip install flow and a UI that supports basic operartions
+- UI for basic operations. The current implementation of Peacasso provides a UI for basic operations - text and image based prompting,
+- Python API with support for experimentation features (e.g. saving intermediate images in the sampling loop, etc.)
+
 ## Requirements and Installation
 
 - Step 1: **HuggingFace Access**
@@ -62,9 +70,12 @@ for i, image in enumerate(result["images"]):
 - [x] UI Features. Query models with multiple parametrs
   - [x] Text prompting
   - [x] Image based prompting
-  - [ ] Image inpainting (masking)
+  - [ ] Editor (for inpainting and outpainting possibly)
   - [ ] Latent space exploration
 - [ ] Curation/sharing experiment results
+- [ ] Experimentation tools
+  - [x] Save intermediate images in the sampling loop
+  - [ ] Model explanations
 
 ## Acknowledgement
 
