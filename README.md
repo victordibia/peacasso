@@ -6,7 +6,7 @@ Peacasso [Beta] is a UI tool to help you generate art (and experiment) with mult
 
 ## Why Use Peacasso?
 
-![](docs/images/peacasso.gif)
+<img style="width: 100%" src="docs/images/peacasso.gif" >
 
 Because you deserve a nice UI and great workflow that makes exploring stable diffusion models fun! But seriously, here are a few things that make Peacasson interesting:
 
