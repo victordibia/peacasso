@@ -4,6 +4,7 @@ import zipfile
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import os
+from codegaze.codegaze.utils import base64_to_pil
 from peacasso.generator import ImageGenerator
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -47,7 +48,9 @@ api.mount("/files", StaticFiles(directory=files_static_root, html=True), name="f
 @api.post("/generate")
 def generate(prompt_config: GeneratorConfig) -> str:
     """Generate an image given some prompt"""
-
+    # print(prompt_config.init_image)
+    if prompt_config.init_image:
+        prompt_config.init_image = base64_to_pil(prompt_config.init_image)
     result = None
     try:
         result = generator.generate(prompt_config)
@@ -74,3 +77,8 @@ def generate(prompt_config: GeneratorConfig) -> str:
     except Exception as e:
         print("error: {}".format(e))
         return {"status": False, "status_message": str(e)}
+
+
+@api.get("/cuda")
+def list_cuda():
+    return generator.list_cuda()
