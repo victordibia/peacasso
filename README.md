@@ -1,6 +1,6 @@
 # Peacasso
 
-[![Open In Colab](https://colab.research.google.com/github/victordibia/peacasso/blob/master/notebooks/tutorial.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/victordibia/peacasso/blob/master/notebooks/tutorial.ipynb)
 
 Peacasso [Beta] is a UI tool to help you generate art (and experiment) with multimodal (text, image) AI models (stable diffusion).
 
