@@ -20,7 +20,7 @@ Clearly, Peacasso (UI) might not be for those interested in low level code.
 
 ## Requirements and Installation
 
-- Step 1: **Access to Weights via HuggingFace **
+- Step 1: **Access to Weights via HuggingFace**
 
   Access to the diffusion model weights requires a HuggingFace model account and access token. Please create an account at [huggingface.co](https://huggingface.co/), get an [access token](https://huggingface.co/settings/tokens) and agree to the model terms [here](https://huggingface.co/CompVis/stable-diffusion-v1-4). Next, create a `HF_API_TOKEN` environment variable containing your token. `export HF_API_TOKEN=your_token`. Note that the first time you run peacasso, the weights for the SD model are [cached locally](https://huggingface.co/transformers/v4.0.1/installation.html#caching-models) on your machine. In theory, you can download the weights, and run peacasso by pointing to the folder with the weights.
 
