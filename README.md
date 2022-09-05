@@ -1,6 +1,6 @@
 # Peacasso
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1_mZzs3tgV1ZPPf26trY5Q6HZgMDulKcw?usp=sharing)
+[![Open In Colab](https://colab.research.google.com/github/victordibia/peacasso/blob/master/notebooks/tutorial.ipynb)
 
 Peacasso [Beta] is a UI tool to help you generate art (and experiment) with multimodal (text, image) AI models (stable diffusion).
 
@@ -33,7 +33,7 @@ Once requirements are met, run the following command to install the library:
 pip install peacasso
 ```
 
-Don't have a GPU, you can still use the python api and UI in a colab notebook. See this [colab notebook](https://colab.research.google.com/drive/1_mZzs3tgV1ZPPf26trY5Q6HZgMDulKcw?usp=sharing) for more details.
+Don't have a GPU, you can still use the python api and UI in a colab notebook. See this [colab notebook](https://colab.research.google.com/github/victordibia/peacasso/blob/master/notebooks/tutorial.ipynb) for more details.
 
 ## Usage - UI and Python API
 
