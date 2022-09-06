@@ -78,9 +78,9 @@ for i, image in enumerate(result["images"]):
 
 - [x] Command line interface
 - [x] UI Features. Query models with multiple parametrs
-  - [x] Text prompting
-  - [x] Image based prompting
-  - [ ] Editor (for inpainting and outpainting possibly)
+  - [x] Text prompting (text2img)
+  - [x] Image based prompting (img2img)
+  - [ ] Editor (for inpainting and outpainting)
   - [ ] Latent space exploration
 - [ ] Experimentation tools
   - [x] Save intermediate images in the sampling loop
