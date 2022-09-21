@@ -13,7 +13,7 @@ Peacasso [Beta] is a UI tool to help you generate art (and experiment) with mult
 Because you deserve a nice UI and great workflow that makes exploring stable diffusion models fun! But seriously, here are a few things that make Peacasson interesting:
 
 - **Easy installation**. Instead of cobbling together command line scripts, Peacasso provides a `pip install` flow and a UI that supports a set of curated default operations.
-- **UI with good defaults**. The current implementation of Peacasso provides a UI for basic operations - text and image based prompting, remixing generated images as prompts, model parameter selection. Also covers the little things .. like light and dark mode.
+- **UI with good defaults**. The current implementation of Peacasso provides a UI for basic operations - text and image based prompting (+ inpainting), remixing generated images as prompts, model parameter selection, image download. Also covers the little things .. like light and dark mode.
 - **Python API**. While the UI is the focus here, there is an underlying python api which will bake in experimentation features (e.g. saving intermediate images in the sampling loop, exploring model explanations etc. . see roadmap below).
 
 Clearly, Peacasso (UI) might not be for those interested in low level code.
@@ -55,7 +55,7 @@ from peacasso.generator import ImageGenerator
 from peacasso.datamodel import GeneratorConfig
 
 token = os.environ.get("HF_API_TOKEN")
-gen = ImageGenerator(token=token)
+gen = ImageGenerator(token=token, model="CompVis/stable-diffusion-v1-4")
 prompt = "A sea lion wandering the streets of post apocalyptic London"
 
 prompt_config = GeneratorConfig(
