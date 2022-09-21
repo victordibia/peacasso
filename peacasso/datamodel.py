@@ -1,6 +1,7 @@
 # from dataclasses import dataclass
 from dataclasses import field
-from typing import Any, List,  Optional, Union
+from random import seed
+from typing import Any, List, Optional, Union
 from pydantic.dataclasses import dataclass
 
 
@@ -20,4 +21,7 @@ class GeneratorConfig:
     output_type: Optional[str] = "pil"
     strength: float = 0.8
     init_image: Any = None
+    seed: Optional[int] = None
     return_intermediates: bool = False
+    mask_image: Any = None
+    attention_slice: Optional[Union[str, int]] = None

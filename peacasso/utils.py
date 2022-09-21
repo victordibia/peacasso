@@ -11,7 +11,16 @@ def get_dirs(path: str) -> List[str]:
 
 
 def base64_to_pil(base64_string: str) -> Image:
-    base64_string = base64_string.replace("data:image/png;base64,", "")
+    # base64_string = base64_string.replace("data:image/png;base64,", "")
+    base64_string = base64_string.split(",")[1]
     img_bytes = base64.b64decode(base64_string)
     img = Image.open(io.BytesIO(img_bytes))
-    return img
+    # print number of channels
+    print(img.mode)
+    mask = None
+    if img.mode == "RGBA":
+        mask = img.getchannel("A")
+        img = img.convert("RGB")
+        mask.save("mask.png")
+        img.save("img.png")
+    return img, mask

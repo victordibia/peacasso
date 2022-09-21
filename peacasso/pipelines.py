@@ -1,4 +1,5 @@
-# based on https://github.com/huggingface/diffusers/tree/main/src/diffusers/pipelines/stable_diffusion
+# based on
+# https://github.com/huggingface/diffusers/tree/main/src/diffusers/pipelines/stable_diffusion
 import inspect
 import time
 from typing import List, Optional, Union
@@ -32,12 +33,25 @@ def preprocess(image):
     return 2.0 * image - 1.0
 
 
+def preprocess_mask(mask):
+    # mask = mask.convert("L")
+    w, h = mask.size
+    w, h = map(lambda x: x - x % 32, (w, h))  # resize to integer multiple of 32
+    mask = mask.resize((w // 8, h // 8), resample=PIL.Image.NEAREST)
+    mask = np.array(mask).astype(np.float32) / 255.0
+    mask = np.tile(mask, (4, 1, 1))
+    mask = mask[None].transpose(0, 1, 2, 3)  # what does this step do?
+    # mask = 1 - mask  # repaint white, keep black
+    mask = torch.from_numpy(mask)
+    return mask
+
+
 def decode_image(
     latents,
     vae,
 ):
     latents = 1 / 0.18215 * latents
-    image = vae.decode(latents)
+    image = vae.decode(latents.to(vae.dtype)).sample
     image = (image / 2 + 0.5).clamp(0, 1)
     image = image.cpu().permute(0, 2, 3, 1).numpy()
     return image
@@ -80,8 +94,19 @@ class StableDiffusionPipeline(DiffusionPipeline):
         strength: float = 0.8,
         init_image: Union[torch.FloatTensor, PIL.Image.Image] = None,
         return_intermediates: bool = False,
+        seed: Optional[int] = 2147483647,
+        attention_slice: Optional[Union[str, int]] = "auto",
+        mask_image: Union[torch.FloatTensor, PIL.Image.Image] = None,
         **kwargs,
     ):
+        if seed is not None:
+            generator = torch.Generator(device=self.device).manual_seed(seed)
+
+        if attention_slice:
+            if attention_slice == "auto":
+                self.unet.set_attention_slice(self.unet.config.attention_head_dim // 2)
+            else:
+                self.unet.set_attention_slice(attention_slice)
         start_time = time.time()
         if isinstance(prompt, str):
             batch_size = 1
@@ -127,27 +152,47 @@ class StableDiffusionPipeline(DiffusionPipeline):
                 )
             if not isinstance(init_image, torch.FloatTensor):
                 init_image = preprocess(init_image)
-            # print(init_image.shape, generator, self.device)
+            init_image = init_image.to(self.device)
             # encode the init image into latents and scale the latents
-            init_latents = self.vae.encode(init_image.to(self.device)).sample()
+            init_latent_dist = self.vae.encode(init_image.to(self.device)).latent_dist
+            init_latents = init_latent_dist.sample(generator=generator)
             init_latents = 0.18215 * init_latents
 
             # expand init_latents for batch_size
             init_latents = torch.cat([init_latents] * batch_size)
+            init_latents_orig = init_latents
+
+            # handle mask if provided
+            if mode == "image" and mask_image is not None:
+                if not isinstance(mask_image, torch.FloatTensor):
+                    mask_image = preprocess_mask(mask_image)
+                mask_image = mask_image.to(self.device)
+                mask = torch.cat([mask_image] * batch_size)
+
+                # check sizes
+                if not mask.shape == init_latents.shape:
+                    raise ValueError("The mask and init_image should be the same size!")
 
             # get the original timestep using init_timestep
+            offset = self.scheduler.config.get("steps_offset", 0)
             init_timestep = int(num_inference_steps * strength) + offset
             init_timestep = min(init_timestep, num_inference_steps)
-            timesteps = self.scheduler.timesteps[-init_timestep]
-            timesteps = torch.tensor(
-                [timesteps] * batch_size, dtype=torch.long, device=self.device
-            )
+            if isinstance(self.scheduler, LMSDiscreteScheduler):
+                timesteps = torch.tensor(
+                    [num_inference_steps - init_timestep] * batch_size, dtype=torch.long,
+                    device=self.device)
+            else:
+                timesteps = self.scheduler.timesteps[-init_timestep]
+                timesteps = torch.tensor(
+                    [timesteps] * batch_size,
+                    dtype=torch.long,
+                    device=self.device)
 
             # add noise to latents using the timesteps
             noise = torch.randn(
                 init_latents.shape, generator=generator, device=self.device
             )
-            init_latents = self.scheduler.add_noise(init_latents, noise, timesteps)
+            init_latents = self.scheduler.add_noise(init_latents, noise, timesteps).to(self.device)
             latents = init_latents
             t_start = max(num_inference_steps - init_timestep + offset, 0)
 
@@ -184,8 +229,8 @@ class StableDiffusionPipeline(DiffusionPipeline):
             text_embeddings = torch.cat([uncond_embeddings, text_embeddings])
 
         # if we use LMSDiscreteScheduler, let's make sure latents are mulitplied by sigmas
-        if isinstance(self.scheduler, LMSDiscreteScheduler):
-            latents = latents * self.scheduler.sigmas[0]
+        # if isinstance(self.scheduler, LMSDiscreteScheduler):
+        #     latents = latents * self.scheduler.sigmas[0]
 
         # prepare extra kwargs for the scheduler step, since not all schedulers have the same signature
         # eta (η) is only used with the DDIMScheduler, it will be ignored for other schedulers.
@@ -229,6 +274,11 @@ class StableDiffusionPipeline(DiffusionPipeline):
                 latents = self.scheduler.step(
                     noise_pred, t, latents, **extra_step_kwargs
                 )["prev_sample"]
+
+            if mode == "image" and mask_image is not None:
+                init_latents_proper = self.scheduler.add_noise(init_latents_orig, noise, t)
+                latents = (init_latents_proper * mask) + (latents * (1 - mask))
+
             if return_intermediates:
                 decoded_image = decode_image(latents, self.vae)
                 intermediate_images.append(self.numpy_to_pil(decoded_image))
