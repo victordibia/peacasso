@@ -83,11 +83,13 @@ for i, image in enumerate(result["images"]):
   - [x] Inpainting (img2img)
   - [ ] Editor (for outpainting)
   - [ ] Latent space exploration
+  - [ ] Model explanations
 - [ ] Experimentation tools
   - [x] Save intermediate images in the sampling loop
   - [ ] Prompt recommendation tools
   - [ ] Model explanations
   - [ ] Curation/sharing experiment results
+  - [ ] Defined Workflows (e.g., tiles, composition etc.)
 
 ## Acknowledgement
 
