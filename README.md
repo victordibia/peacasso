@@ -80,7 +80,8 @@ for i, image in enumerate(result["images"]):
 - [x] UI Features. Query models with multiple parametrs
   - [x] Text prompting (text2img)
   - [x] Image based prompting (img2img)
-  - [ ] Editor (for inpainting and outpainting)
+  - [x] Inpainting (img2img)
+  - [ ] Editor (for outpainting)
   - [ ] Latent space exploration
 - [ ] Experimentation tools
   - [x] Save intermediate images in the sampling loop
