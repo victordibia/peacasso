@@ -49,11 +49,14 @@ api.mount("/files", StaticFiles(directory=files_static_root, html=True), name="f
 @api.post("/generate")
 def generate(prompt_config: GeneratorConfig) -> str:
     """Generate an image given some prompt"""
-    # print(prompt_config.init_image)
+    # print("pconf >>>>>> ", prompt_config.init_image)
     if prompt_config.init_image:
-        prompt_config.init_image = base64_to_pil(prompt_config.init_image)
+        prompt_config.init_image, _ = base64_to_pil(prompt_config.init_image)
+    if prompt_config.mask_image:
+        _, prompt_config.mask_image = base64_to_pil(prompt_config.mask_image)
     result = None
     try:
+        # print("prompt_config >>>>>> ", prompt_config)
         result = generator.generate(prompt_config)
     except Exception as e:
         return {"status": False, "status_message": str(e)}
