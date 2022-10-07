@@ -1,5 +1,6 @@
 output/
 samples/
+peacasso/gens
 peacasso/web/backend/files
 examples/experiment_results.json
 examples/data

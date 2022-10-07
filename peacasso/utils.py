@@ -20,7 +20,5 @@ def base64_to_pil(base64_string: str) -> Image:
     mask = None
     if img.mode == "RGBA":
         mask = img.getchannel("A")
-        img = img.convert("RGB")
-        mask.save("mask.png")
-        img.save("img.png")
+        img = img.convert("RGB") 
     return img, mask

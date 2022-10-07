@@ -4,11 +4,11 @@
 
 Peacasso [Beta] is a UI tool to help you generate art (and experiment) with multimodal (text, image) AI models (stable diffusion). This project is still in development (see roadmap below).
 
-![](docs/images/screenpc.png)
+![](https://github.com/victordibia/peacasso/blob/master/docs/images/screenpc.png?raw=true)
 
 ## Why Use Peacasso?
 
-<img width="100%" src="docs/images/peacasso.gif" />
+<img width="100%" src="https://github.com/victordibia/peacasso/blob/master/docs/images/peacasso.gif?raw=true" />
 
 Because you deserve a nice UI and great workflow that makes exploring stable diffusion models fun! But seriously, here are a few things that make Peacasson interesting:
 
