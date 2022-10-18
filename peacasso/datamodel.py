@@ -21,7 +21,7 @@ class GeneratorConfig:
     output_type: Optional[str] = "pil"
     strength: float = 0.8
     init_image: Any = None
-    seed: Optional[int] = None
+    seed: Optional[Union[int, None]] = None  # e.g. 2147483647
     return_intermediates: bool = False
     mask_image: Any = None
     attention_slice: Optional[Union[str, int]] = None

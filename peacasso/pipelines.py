@@ -99,7 +99,11 @@ class StableDiffusionPipeline(DiffusionPipeline):
         mask_image: Union[torch.FloatTensor, PIL.Image.Image] = None,
         **kwargs,
     ):
-        if seed is not None:
+        if seed is not None and seed != "":
+            generator = torch.Generator(device=self.device).manual_seed(seed)
+        else:
+            # create a random seed and use it to create a generator
+            seed = torch.randint(0, 2 ** 32, (1,)).item()
             generator = torch.Generator(device=self.device).manual_seed(seed)
 
         if attention_slice:
@@ -302,4 +306,5 @@ class StableDiffusionPipeline(DiffusionPipeline):
             "nsfw_content_detected": has_nsfw_concept,
             "intermediates": intermediate_images,
             "time": time.time() - start_time,
+            "seed": seed,
         }
