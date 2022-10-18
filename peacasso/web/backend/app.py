@@ -35,12 +35,6 @@ files_static_root = os.path.join(root_file_path, "files/")
 
 os.makedirs(files_static_root, exist_ok=True)
 
-# if not os.path.exists(static_folder_root):
-#     assert False, "Static folder not found: {}. Ensure the front end is built".format(
-#         static_folder_root
-#     )
-
-
 # mount peacasso front end UI files
 app.mount("/", StaticFiles(directory=static_folder_root, html=True), name="ui")
 api.mount("/files", StaticFiles(directory=files_static_root, html=True), name="files")
@@ -49,7 +43,7 @@ api.mount("/files", StaticFiles(directory=files_static_root, html=True), name="f
 @api.post("/generate")
 def generate(prompt_config: GeneratorConfig) -> str:
     """Generate an image given some prompt"""
-    # print("pconf >>>>>> ", prompt_config.init_image)
+    print("pconf >>>>>> ", prompt_config)
     if prompt_config.init_image:
         prompt_config.init_image, _ = base64_to_pil(prompt_config.init_image)
     if prompt_config.mask_image:
@@ -76,8 +70,8 @@ def generate(prompt_config: GeneratorConfig) -> str:
         return StreamingResponse(
             iter([zip_io.getvalue()]),
             media_type="application/x-zip-compressed",
-            headers={"Content-Disposition": f"attachment; filename=images.zip"},
-        )
+            headers={"Content-Disposition": f"attachment; filename=images.zip",
+                     "Generation-Seed": str(result["seed"])},)
     except Exception as e:
         print("error: {}".format(e))
         return {"status": False, "status_message": str(e)}
