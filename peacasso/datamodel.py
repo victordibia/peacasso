@@ -11,7 +11,6 @@ class GeneratorConfig:
 
     prompt: Union[str, List[str]]
     num_images: int = 1
-    mode: str = "prompt"   # prompt, image, mask
     height: Optional[int] = 512
     width: Optional[int] = 512
     num_inference_steps: Optional[int] = 50
@@ -20,8 +19,10 @@ class GeneratorConfig:
     # generator: Optional[Any] = None
     output_type: Optional[str] = "pil"
     strength: float = 0.8
-    init_image: Any = None
+    init_image: Optional[Any] = None
     seed: Optional[Union[int, None]] = None  # e.g. 2147483647
     return_intermediates: bool = False
-    mask_image: Any = None
+    mask_image: Optional[Any] = None
     attention_slice: Optional[Union[str, int]] = None
+    negative_prompt: Optional[Union[str, List[str]]] = None
+    latents: Optional[Any] = None
