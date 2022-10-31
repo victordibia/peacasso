@@ -37,7 +37,6 @@ def preprocess(image):
 
 
 def preprocess_mask(mask):
-    # mask = mask.convert("L")
     w, h = mask.size
     w, h = map(lambda x: x - x % 32, (w, h))  # resize to integer multiple of 32
     mask = mask.resize((w // 8, h // 8), resample=PIL.Image.NEAREST)
@@ -94,15 +93,16 @@ class StableDiffusionPipeline(DiffusionPipeline):
         generator: Optional[torch.Generator] = None,
         strength: float = 0.8,
         init_image: Union[torch.FloatTensor, PIL.Image.Image] = None,
-        return_intermediates: bool = False,
         seed: Optional[int] = 2147483647,
         attention_slice: Optional[Union[str, int]] = "auto",
         mask_image: Union[torch.FloatTensor, PIL.Image.Image] = None,
         num_images: Optional[int] = 1,
         negative_prompt: Optional[Union[str, List[str]]] = None,
         latents: Optional[torch.FloatTensor] = None,
-        callback: Optional[Callable[[int, int, torch.FloatTensor], None]] = None,
+        callback: Optional[Callable[[int, int, torch.FloatTensor, PIL.Image.Image], None]] = None,
         callback_steps: Optional[int] = 1,
+        return_intermediates: Optional[bool] = False,
+        prompt_weights: Optional[List[float]] = None,
         **kwargs,
     ):
 
@@ -149,6 +149,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
         )
         text_input_ids = text_inputs.input_ids
 
+        # provide warning if prompt is too long for the model
         if text_input_ids.shape[-1] > self.tokenizer.model_max_length:
             removed_text = self.tokenizer.batch_decode(
                 text_input_ids[:, self.tokenizer.model_max_length:])
@@ -158,10 +159,27 @@ class StableDiffusionPipeline(DiffusionPipeline):
             text_input_ids = text_input_ids[:, : self.tokenizer.model_max_length]
         text_embeddings = self.text_encoder(text_input_ids.to(self.device))[0]
 
+        # apply prompt weights if provided
+        if prompt_weights is not None:
+            print("applyhing prompt_weights", prompt_weights)
+            if len(prompt_weights) != len(prompt):
+                raise ValueError("Length of prompt should be same as weights.")
+            else:
+                for i in range(len(prompt_weights)):
+                    text_embeddings[i] = text_embeddings[i] * prompt_weights[i]
+            text_embeddings = torch.mean( text_embeddings,  dim=0 ).unsqueeze(0)
+            batch_size = text_embeddings.shape[0]
+
+        print("Text embedding shape", text_embeddings.shape)
         # duplicate text embeddings for each generation per prompt, using mps friendly method
         bs_embed, seq_len, _ = text_embeddings.shape
         text_embeddings = text_embeddings.repeat(1, num_images, 1)
         text_embeddings = text_embeddings.view(bs_embed * num_images, seq_len, -1)
+
+        # here `guidance_scale` is defined analog to the guidance weight `w` of equation (2)
+        # of the Imagen paper: https://arxiv.org/pdf/2205.11487.pdf . `guidance_scale = 1`
+        # corresponds to doing no classifier free guidance.
+        do_classifier_free_guidance = guidance_scale > 1.0
 
         if init_image is None:  # text prompt mode
             if height % 8 != 0 or width % 8 != 0:
@@ -195,7 +213,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
                     raise ValueError(
                         f"Unexpected latents shape, got {latents.shape}, expected {latents_shape}")
                 latents = latents.to(self.device)
-        else:
+        else:  # image prompt mode
             if strength < 0 or strength > 1:
                 raise ValueError(
                     f"The value of strength should in [0.0, 1.0] but is {strength}"
@@ -216,8 +234,8 @@ class StableDiffusionPipeline(DiffusionPipeline):
             if init_image is not None and mask_image is not None:
                 if not isinstance(mask_image, torch.FloatTensor):
                     mask_image = preprocess_mask(mask_image)
-                mask_image = mask_image.to(self.device)
-                mask = torch.cat([mask_image] * batch_size)
+                mask_image = mask_image.to(device=self.device, dtype=latents_dtype)
+                mask = torch.cat([mask_image] * batch_size * num_images)
 
                 # check sizes
                 if not mask.shape == init_latents.shape:
@@ -242,10 +260,6 @@ class StableDiffusionPipeline(DiffusionPipeline):
             t_start = max(num_inference_steps - init_timestep + offset, 0)
             timesteps = self.scheduler.timesteps[t_start:].to(self.device)
 
-        # here `guidance_scale` is defined analog to the guidance weight `w` of equation (2)
-        # of the Imagen paper: https://arxiv.org/pdf/2205.11487.pdf . `guidance_scale = 1`
-        # corresponds to doing no classifier free guidance.
-        do_classifier_free_guidance = guidance_scale > 1.0
         # get unconditional embeddings for classifier free guidance
         if do_classifier_free_guidance:
             uncond_tokens: List[str]
@@ -300,13 +314,12 @@ class StableDiffusionPipeline(DiffusionPipeline):
         if accepts_eta:
             extra_step_kwargs["eta"] = eta
 
-        intermediate_images = []
         for i, t in enumerate(self.progress_bar(timesteps_tensor)):
             # expand the latents if we are doing classifier free guidance
             latent_model_input = torch.cat(
                 [latents] * 2) if do_classifier_free_guidance else latents
-            latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
 
+            latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
             # predict the noise residual
             noise_pred = self.unet(
                 latent_model_input,
@@ -321,36 +334,32 @@ class StableDiffusionPipeline(DiffusionPipeline):
 
             # compute the previous noisy sample x_t -> x_t-1
             latents = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs).prev_sample
-
             if init_image is not None and mask_image is not None:
                 init_latents_proper = self.scheduler.add_noise(init_latents_orig, noise, t)
                 latents = (init_latents_proper * mask) + (latents * (1 - mask))
 
-            if return_intermediates:
-                decoded_image = decode_image(latents, self.vae)
-                intermediate_images.append(self.numpy_to_pil(decoded_image))
             # call the callback, if provided
             if callback is not None and i % callback_steps == 0:
-                callback(i, t, latents)
+                if return_intermediates:
+                    decoded_image = self.numpy_to_pil(decode_image(latents, self.vae))
+                    callback(i, t, latents, decoded_image)
+                else:
+                    callback(i, t, None, None)
 
         # scale and decode the image latents with vae
         has_nsfw_concept = None
-        if return_intermediates:
-            image = intermediate_images[-1]
-        else:
-            image = decode_image(latents, self.vae)
-            safety_cheker_input = self.feature_extractor(
-                self.numpy_to_pil(image), return_tensors="pt"
-            ).to(self.device)
-            image, has_nsfw_concept = self.safety_checker(
-                images=np.asarray(image), clip_input=safety_cheker_input.pixel_values
-            )
-            image = self.numpy_to_pil(image)
+        image = decode_image(latents, self.vae)
+        safety_cheker_input = self.feature_extractor(
+            self.numpy_to_pil(image), return_tensors="pt"
+        ).to(self.device)
+        image, has_nsfw_concept = self.safety_checker(
+            images=np.asarray(image), clip_input=safety_cheker_input.pixel_values.to(
+                text_embeddings.dtype))
+        image = self.numpy_to_pil(image)
 
         return {
             "images": image,
             "nsfw_content_detected": has_nsfw_concept,
-            "intermediates": intermediate_images,
             "time": time.time() - start_time,
             "seed": seed,
         }

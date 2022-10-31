@@ -1,4 +1,5 @@
 from dataclasses import asdict
+import logging
 from torch import autocast
 from PIL import Image
 from typing import List, Optional
@@ -9,7 +10,10 @@ import torch
 import time
 
 from peacasso.datamodel import GeneratorConfig
+from peacasso.utils import prompt_arithmetic
 from peacasso.pipelines import StableDiffusionPipeline
+
+logger = logging.getLogger(__name__)
 
 
 class ImageGenerator:
@@ -17,11 +21,11 @@ class ImageGenerator:
 
     def __init__(
         self,
-        model: str = "CompVis/stable-diffusion-v1-4",
+        model: str = "runwayml/stable-diffusion-v1-5",
         token: str = os.environ.get("HF_API_TOKEN"),
         cuda_device: int = 0,
         revision: str = "fp16",
-        torch_dtype: Optional[torch.FloatTensor] = torch.float32
+        torch_dtype: Optional[torch.FloatTensor] = torch.float16
     ) -> None:
 
         assert token is not None, "HF_API_TOKEN environment variable must be set."
@@ -35,9 +39,6 @@ class ImageGenerator:
 
     def generate(self, config: GeneratorConfig) -> Image:
         """Generate image from prompt"""
-        config.prompt = [config.prompt]
-        # with autocast("cuda" if torch.cuda.is_available() else "cpu"):
-        #     results = self.pipe(**asdict(config))
         return self.pipe(**asdict(config))
 
     def list_cuda(self) -> List[int]:
