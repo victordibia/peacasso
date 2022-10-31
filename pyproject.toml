@@ -27,6 +27,7 @@ dependencies = [
     "uvicorn",
     "typer",
     "fastapi", 
+    "websockets",
 ]
 dynamic = ["version"]
 

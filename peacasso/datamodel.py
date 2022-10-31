@@ -3,6 +3,7 @@ from dataclasses import field
 from random import seed
 from typing import Any, List, Optional, Union
 from pydantic.dataclasses import dataclass
+from typer import Option
 
 
 @dataclass
@@ -26,3 +27,13 @@ class GeneratorConfig:
     attention_slice: Optional[Union[str, int]] = None
     negative_prompt: Optional[Union[str, List[str]]] = None
     latents: Optional[Any] = None
+    callback: Optional[Any] = None
+    prompt_weights: Optional[List[float]] = None
+
+
+@dataclass
+class SocketData:
+    """Data sent over the websocket"""
+    data: Any
+    type: str
+    token: Optional[str] = None

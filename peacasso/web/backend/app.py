@@ -1,23 +1,20 @@
-from io import BytesIO
-import io
-import zipfile
-from fastapi import FastAPI
+import json
+from typing import List
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 import os
 from peacasso.generator import ImageGenerator
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
-from peacasso.datamodel import GeneratorConfig
-import hashlib
+from peacasso.datamodel import SocketData
+from peacasso.web.backend.processor import process_request
 
-from peacasso.utils import base64_to_pil
 
 # # load token from .env variable
 hf_token = os.environ.get("HF_API_TOKEN")
 generator = ImageGenerator(token=hf_token)
 
 app = FastAPI()
-# allow cross origin requests for testing on localhost:800* ports only
+# allow cross origin requests for testing on localhost: 800 * ports only
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:8000", "http://localhost:8001"],
@@ -40,43 +37,48 @@ app.mount("/", StaticFiles(directory=static_folder_root, html=True), name="ui")
 api.mount("/files", StaticFiles(directory=files_static_root, html=True), name="files")
 
 
-@api.post("/generate")
-def generate(prompt_config: GeneratorConfig) -> str:
-    """Generate an image given some prompt"""
-    print("pconf >>>>>> ", prompt_config)
-    if prompt_config.init_image:
-        prompt_config.init_image, _ = base64_to_pil(prompt_config.init_image)
-    if prompt_config.mask_image:
-        _, prompt_config.mask_image = base64_to_pil(prompt_config.mask_image)
-    result = None
-    try:
-        # print("prompt_config >>>>>> ", prompt_config)
-        result = generator.generate(prompt_config)
-    except Exception as e:
-        return {"status": False, "status_message": str(e)}
-    try:
-        slug = hashlib.sha256(str(prompt_config).encode("utf-8")).hexdigest()
-        zip_io = BytesIO()
-        with zipfile.ZipFile(
-            zip_io, mode="w", compression=zipfile.ZIP_DEFLATED
-        ) as temp_zip:
-            for i, image in enumerate(result["images"]):
-                zip_path = os.path.join("/", str(slug) + "_" + str(i) + ".png")
-                # Add file, at correct path
-                img_byte_arr = io.BytesIO()
-                image.save(img_byte_arr, format="PNG")
-                image.close()
-                temp_zip.writestr(zip_path, img_byte_arr.getvalue())
-        return StreamingResponse(
-            iter([zip_io.getvalue()]),
-            media_type="application/x-zip-compressed",
-            headers={"Content-Disposition": f"attachment; filename=images.zip",
-                     "Generation-Seed": str(result["seed"])},)
-    except Exception as e:
-        print("error: {}".format(e))
-        return {"status": False, "status_message": str(e)}
+# enable web socket connection for real time updates
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        await websocket.send_text(message)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            await connection.send_text(message)
 
 
-@api.get("/cuda")
-def list_cuda():
-    return generator.list_cuda()
+manager = ConnectionManager()
+
+
+@api.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # parse data to json
+            try:
+                request = SocketData(**json.loads(data))
+                await process_request(request, generator, websocket)
+                # await manager.send_personal_message(response, websocket)
+            except Exception as e:
+                print("error: {}".format(e))
+                response = json.dumps({"type": "generate_complete", "data": {
+                    "status": {"status": False, "message": str("{}".format(e))},
+                }})
+                await websocket.send_text(response)
+                continue
+
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+        await manager.broadcast(f"Client  left the chat")
