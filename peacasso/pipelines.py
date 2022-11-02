@@ -102,7 +102,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
         callback: Optional[Callable[[int, int, torch.FloatTensor, PIL.Image.Image], None]] = None,
         callback_steps: Optional[int] = 1,
         return_intermediates: Optional[bool] = False,
-        prompt_weights: Optional[List[float]] = None,
+        prompt_weights: Optional[Union[List[float], float]] = None,
         **kwargs,
     ):
 
@@ -167,7 +167,9 @@ class StableDiffusionPipeline(DiffusionPipeline):
             else:
                 for i in range(len(prompt_weights)):
                     text_embeddings[i] = text_embeddings[i] * prompt_weights[i]
-            text_embeddings = torch.mean( text_embeddings,  dim=0 ).unsqueeze(0)
+                # sum embeddings
+                text_embeddings = torch.sum(text_embeddings, dim=0, keepdim=True)
+            text_embeddings = torch.mean(text_embeddings, dim=0).unsqueeze(0)
             batch_size = text_embeddings.shape[0]
 
         print("Text embedding shape", text_embeddings.shape)
@@ -356,6 +358,9 @@ class StableDiffusionPipeline(DiffusionPipeline):
             images=np.asarray(image), clip_input=safety_cheker_input.pixel_values.to(
                 text_embeddings.dtype))
         image = self.numpy_to_pil(image)
+
+        # get generation config as key value dict from method signature
+        # generation_config = inspect.signature(self.generate).parameters
 
         return {
             "images": image,

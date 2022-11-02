@@ -1,6 +1,5 @@
 from dataclasses import asdict
 import logging
-from torch import autocast
 from PIL import Image
 from typing import List, Optional
 # from diffusers import StableDiffusionPipeline
@@ -10,7 +9,6 @@ import torch
 import time
 
 from peacasso.datamodel import GeneratorConfig
-from peacasso.utils import prompt_arithmetic
 from peacasso.pipelines import StableDiffusionPipeline
 
 logger = logging.getLogger(__name__)
@@ -35,6 +33,7 @@ class ImageGenerator:
             revision=revision,
             torch_dtype=torch_dtype,
             use_auth_token=token,
+            devcice_map="auto"
         ).to(self.device)
 
     def generate(self, config: GeneratorConfig) -> Image:
