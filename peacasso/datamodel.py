@@ -29,6 +29,7 @@ class GeneratorConfig:
     latents: Optional[Any] = None
     callback: Optional[Any] = None
     prompt_weights: Optional[List[float]] = None
+    use_prompt_weights: bool = False
 
 
 @dataclass

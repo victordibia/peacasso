@@ -103,6 +103,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
         callback_steps: Optional[int] = 1,
         return_intermediates: Optional[bool] = False,
         prompt_weights: Optional[Union[List[float], float]] = None,
+        use_prompt_weights: Optional[bool] = False,
         **kwargs,
     ):
 
@@ -146,6 +147,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
             padding="max_length",
             max_length=self.tokenizer.model_max_length,
             return_tensors="pt",
+            truncation=True,
         )
         text_input_ids = text_inputs.input_ids
 
@@ -160,8 +162,8 @@ class StableDiffusionPipeline(DiffusionPipeline):
         text_embeddings = self.text_encoder(text_input_ids.to(self.device))[0]
 
         # apply prompt weights if provided
-        if prompt_weights is not None:
-            print("applyhing prompt_weights", prompt_weights)
+        if use_prompt_weights and prompt_weights is not None:
+            logging.info("applying prompt_weights" + str(prompt_weights))
             if len(prompt_weights) != len(prompt):
                 raise ValueError("Length of prompt should be same as weights.")
             else:
@@ -172,7 +174,6 @@ class StableDiffusionPipeline(DiffusionPipeline):
             text_embeddings = torch.mean(text_embeddings, dim=0).unsqueeze(0)
             batch_size = text_embeddings.shape[0]
 
-        print("Text embedding shape", text_embeddings.shape)
         # duplicate text embeddings for each generation per prompt, using mps friendly method
         bs_embed, seq_len, _ = text_embeddings.shape
         text_embeddings = text_embeddings.repeat(1, num_images, 1)
