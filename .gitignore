@@ -7,6 +7,7 @@ examples/data
 data  
 .DS_Store
 test.py
+notebooks/test.ipynb
 experiments/data
 test.py
 .azure
