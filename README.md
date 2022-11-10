@@ -74,23 +74,56 @@ for i, image in enumerate(result["images"]):
     image.save(f"image_{i}.png")
 ```
 
+## Design Philosophy
+
+Features in `Peacasso` are being designed based on insights from communication theory [^1] and also research on Human-AI interaction design [^2]. Leran more about the design and components in peacasso in the paper [here](#).
+
+<img width="100%" src="https://github.com/victordibia/peacasso/blob/master/docs/images/mrt.png?raw=true" />
+
+
 ## Features and Road Map
 
 - [x] Command line interface
 - [x] UI Features. Query models with multiple parametrs
-  - [x] Text prompting (text2img)
-  - [x] Image based prompting (img2img)
-  - [x] Inpainting (img2img)
+  - [x] Prompting: Text prompting (text2img), Image based prompting (img2img), Inpainting (img2img)
   - [ ] Editor (for outpainting)
   - [ ] Latent space exploration
-  - [ ] Model explanations
 - [ ] Experimentation tools
   - [x] Save intermediate images in the sampling loop
-  - [ ] Prompt recommendation tools
-  - [ ] Model explanations
+  - [x] Weighted prompt mixing
+  - [ ] Prompt recommendation
   - [ ] Curation/sharing experiment results
   - [ ] Defined Workflows (e.g., tiles, composition etc.)
+  - [ ] Model explanations
 
 ## Acknowledgement
 
 This work builds on the stable diffusion model and code is adapted from the HuggingFace [implementation](https://huggingface.co/blog/stable_diffusion). Please note the - [CreativeML Open RAIL-M](https://huggingface.co/spaces/CompVis/stable-diffusion-license) license associated with the stable diffusion model.
+
+## Citation
+
+If you use `peacasso` for in your research or adopt the design guidelines used to build `peacasso`, please consider citing as follows:
+
+```bibtex
+@misc{dibia2022peacasso,
+      title={Interaction Design for Systems that Integrate Image Generation Models: A Case Study with Peacasso},
+      author={Victor Dibia},
+      year={2022},
+      publisher={GitHub},
+      journal={GitHub repository},
+      year={2021},
+      primaryClass={cs.CV}
+}
+```
+
+## References
+
+[^1]:
+    Richard L Daft and Robert H Lengel. 1986. Organizational information require-
+    ments, media richness and structural design. Management science
+
+[^2]:
+    Saleema Amershi, Dan Weld, Mihaela Vorvoreanu, Adam Fourney, Besmira Nushi,
+    Penny Collisson, Jina Suh, Shamsi Iqbal, Paul N Bennett, Kori Inkpen, et al. 2019.
+    Guidelines for human-AI interaction. In Proceedings of the 2019 chi conference on
+    human factors in computing systems.

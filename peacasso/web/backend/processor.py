@@ -57,7 +57,7 @@ async def process_request(request: SocketData, generator: ImageGenerator, websoc
                 "config": sanitized_config, "result": result}})  # send result to client
         except Exception as e:
             # print("error: {}".format(e))
-            # traceback.print_exc()
+            traceback.print_exc()
             response = json.dumps({"type": "generate_complete", "data": {
                 "status": {"status": False, "message": str(e)},
                 "config": sanitized_config, "result": None}})
