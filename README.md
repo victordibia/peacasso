@@ -76,9 +76,13 @@ for i, image in enumerate(result["images"]):
 
 ## Design Philosophy
 
-Features in `Peacasso` are being designed based on insights from communication theory [^1] and also research on Human-AI interaction design [^2]. Leran more about the design and components in peacasso in the paper [here](https://github.com/victordibia/peacasso/blob/master/docs/images/paper.pdf).
+Features in `Peacasso` are being designed based on insights from communication theory [^1] and also research on Human-AI interaction design [^2]. Learn more about the design and components in peacasso in the paper [here](https://github.com/victordibia/peacasso/blob/master/docs/images/paper.pdf).
 
 <img width="100%" src="https://github.com/victordibia/peacasso/blob/master/docs/images/mrt.png?raw=true" />
+
+A general vision for the Peacasso architecture is shown below (parts of this are still being implemented):
+
+<img width="100%" src="https://github.com/victordibia/peacasso/blob/master/docs/images/peacasso_arch.png?raw=true" />
 
 ## Features and Road Map
 
