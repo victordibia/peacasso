@@ -1,17 +1,31 @@
 import json
+import logging
 from typing import List
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 import os
 from peacasso.generator import ImageGenerator
 from fastapi.middleware.cors import CORSMiddleware
-from peacasso.datamodel import SocketData
+from peacasso.datamodel import ModelConfig, SocketData
 from peacasso.web.backend.processor import process_request
+import uvicorn
+import os
 
+logger = logging.getLogger("peacasso")
 
-# # load token from .env variable
-hf_token = os.environ.get("HF_API_TOKEN")
-generator = ImageGenerator(token=hf_token)
+assert os.environ.get("HF_API_TOKEN") is not None, "HF_API_TOKEN not set"
+
+# load model using env variables
+model_config = ModelConfig(
+    model=os.environ.get("PEACASSO_MODEL", "runwayml/stable-diffusion-v1-5"),
+    revision=os.environ.get("PEACASSO_REVISION", "fp16"),
+    device=os.environ.get("PEACASSO_DEVICE", "cuda:0"),
+    token=os.environ.get("HF_API_TOKEN")
+)
+logger.info(
+    ">> Loading Imagenerator pipeline with config. " + str(model_config))
+generator = ImageGenerator(model_config)
+logger.info(">> Imagenerator pipeline loaded.")
 
 app = FastAPI()
 # allow cross origin requests for testing on localhost: 800 * ports only
