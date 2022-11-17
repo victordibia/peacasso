@@ -33,6 +33,12 @@ Once requirements are met, run the following command to install the library:
 pip install peacasso
 ```
 
+Want to stay on the bleeding edge of updates (which might be buggy)? Install directly from the repo:
+
+```bash
+pip install git+https://github.com/victordibia/peacasso.git
+```
+
 Don't have a GPU, you can still use the python api and UI in a colab notebook. See this [colab notebook](https://colab.research.google.com/github/victordibia/peacasso/blob/master/notebooks/tutorial.ipynb) for more details.
 
 ## Usage - UI and Python API
