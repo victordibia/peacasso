@@ -8,37 +8,43 @@ import os
 import torch
 import time
 
-from peacasso.datamodel import GeneratorConfig
+from peacasso.datamodel import GeneratorConfig, ModelConfig
 from peacasso.pipelines import StableDiffusionPipeline
 
 logger = logging.getLogger(__name__)
 
 
 class ImageGenerator:
-    """Generate image from prompt"""
+    """Class to handle generating image from prompt"""
 
     def __init__(
         self,
-        model: str = "runwayml/stable-diffusion-v1-5",
-        token: str = os.environ.get("HF_API_TOKEN"),
-        cuda_device: int = 0,
-        revision: str = "fp16",
-        torch_dtype: Optional[torch.FloatTensor] = torch.float16
+        model_config: ModelConfig
     ) -> None:
 
-        assert token is not None, "HF_API_TOKEN environment variable must be set."
-        self.device = f"cuda:{cuda_device}" if torch.cuda.is_available() else "cpu"
+        self.create_model(model_config)
+
+    def create_model(self, model_config: ModelConfig):
+        assert model_config. token is not None, "HF_API_TOKEN environment variable must be set."
+
+        device = model_config.device if torch.cuda.is_available() else "cpu"
         self.pipe = StableDiffusionPipeline.from_pretrained(
-            model,
-            revision=revision,
-            torch_dtype=torch_dtype,
-            use_auth_token=token,
-            devcice_map="auto"
-        ).to(self.device)
+            model_config.model,
+            revision=model_config.revision,
+            # torch_dtype=torch.float16 if model_config.revision == "fp16" else torch.float32,
+            torch_dtype=torch.float16,
+            use_auth_token=model_config.token
+        ).to(device)
 
     def generate(self, config: GeneratorConfig) -> Image:
         """Generate image from prompt"""
         return self.pipe(**asdict(config))
+
+    def reload(self, model_config) -> None:
+        """Clear pipe models from memory, reload pipe with new parameters"""
+        del self.pipe
+        torch.cuda.empty_cache()
+        self.create_model(model_config)
 
     def list_cuda(self) -> List[int]:
         """List available cuda devices
