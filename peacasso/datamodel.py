@@ -4,6 +4,16 @@ from random import seed
 from typing import Any, List, Optional, Union
 from pydantic.dataclasses import dataclass
 from typer import Option
+import os
+
+
+@dataclass
+class ModelConfig:
+    """ Configuration for the HF Diffuser Model"""
+    model: Optional[str] = "runwayml/stable-diffusion-v1-5"
+    token: str = os.environ.get("HF_API_TOKEN")
+    device: Optional[str] = "cuda:0"
+    revision: Optional[str] = "fp16"
 
 
 @dataclass
