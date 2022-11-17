@@ -18,7 +18,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "transformers",
+    "transformers", 
     "scipy",
     "ftfy",
     "diffusers==0.6.0",
