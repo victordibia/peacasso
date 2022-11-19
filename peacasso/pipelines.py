@@ -107,6 +107,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
         **kwargs,
     ):
 
+        intermediate_images = []
         if (callback_steps is None) or (callback_steps is not None and (
                 not isinstance(callback_steps, int) or callback_steps <= 0)):
             raise ValueError(
@@ -341,13 +342,15 @@ class StableDiffusionPipeline(DiffusionPipeline):
                 init_latents_proper = self.scheduler.add_noise(init_latents_orig, noise, t)
                 latents = (init_latents_proper * mask) + (latents * (1 - mask))
 
+            decoded_image = None
+            if return_intermediates:
+                decoded_image = self.numpy_to_pil(decode_image(latents, self.vae))
+                intermediate_images.append(decoded_image)
+                
             # call the callback, if provided
-            if callback is not None and i % callback_steps == 0:
-                if return_intermediates:
-                    decoded_image = self.numpy_to_pil(decode_image(latents, self.vae))
-                    callback(i, t, latents, decoded_image)
-                else:
-                    callback(i, t, None, None)
+            if callback is not None and i % callback_steps == 0: 
+                callback(i, t, latents, decoded_image)
+                 
 
         # scale and decode the image latents with vae
         has_nsfw_concept = None
@@ -365,6 +368,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
 
         return {
             "images": image,
+            "intermediates": intermediate_images,
             "nsfw_content_detected": has_nsfw_concept,
             "time": time.time() - start_time,
             "seed": seed,

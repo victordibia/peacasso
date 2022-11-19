@@ -25,7 +25,7 @@ class ImageGenerator:
         self.create_model(model_config)
 
     def create_model(self, model_config: ModelConfig):
-        assert model_config. token is not None, "HF_API_TOKEN environment variable must be set."
+        # assert model_config. token is not None, "HF_API_TOKEN environment variable must be set."
 
         device = model_config.device if torch.cuda.is_available() else "cpu"
         self.pipe = StableDiffusionPipeline.from_pretrained(
