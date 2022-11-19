@@ -11,7 +11,7 @@ import os
 class ModelConfig:
     """ Configuration for the HF Diffuser Model"""
     model: Optional[str] = "runwayml/stable-diffusion-v1-5"
-    token: str = os.environ.get("HF_API_TOKEN")
+    token: Optional[str] = os.environ.get("HF_API_TOKEN")
     device: Optional[str] = "cuda:0"
     revision: Optional[str] = "fp16"
 
