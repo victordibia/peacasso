@@ -103,8 +103,8 @@ A general vision for the Peacasso architecture is shown below (parts of this are
 - [x] Command line interface
 - [x] UI Features. Query models with multiple parametrs
   - [x] Prompting: Text prompting (text2img), Image based prompting (img2img), Inpainting (img2img)
-  - [ ] Editor (for outpainting)
-  - [ ] Latent space exploration
+  - [x] Latent space interpolation
+  - [ ] Full Editor (for outpainting) (see tutorial [notebook](https://github.com/victordibia/peacasso/blob/master/notebooks/tutorial.ipynb) )
 - [ ] Experimentation tools
   - [x] Save intermediate images in the sampling loop
   - [x] Weighted prompt mixing
