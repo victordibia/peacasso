@@ -1,26 +1,35 @@
 
-import asyncio
 import copy
 import json
-import PIL
+from typing import List
 from dataclasses import asdict
 from fastapi import WebSocket
-import torch
 from peacasso.datamodel import GeneratorConfig, SocketData
 from peacasso.generator import ImageGenerator
-from peacasso.utils import base64_to_pil, pil_to_base64
+from peacasso.utils import base64_to_pil, pil_to_base64, sanitize_config
 import traceback
 
 
-def sanitize_config(config: GeneratorConfig) -> GeneratorConfig:
-    """Sanitize config, remove non serializable fields"""
+# enable web socket connection for real time updates
+class ConnectionManager:
+    """Connection manager for websockets"""
 
-    if config.init_image:
-        config.init_image = None
-    if config.mask_image:
-        config.mask_image = None
-    config.callback = None
-    return config
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        await websocket.send_text(message)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            await connection.send_text(message)
 
 
 async def process_request(request: SocketData, generator: ImageGenerator, websocket: WebSocket):

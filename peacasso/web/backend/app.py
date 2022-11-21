@@ -1,14 +1,12 @@
 import json
 import logging
-from typing import List
-from fastapi import APIRouter, FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 import os
 from peacasso.generator import ImageGenerator
 from fastapi.middleware.cors import CORSMiddleware
 from peacasso.datamodel import ModelConfig, SocketData
-from peacasso.web.backend.processor import process_request
-import uvicorn
+from peacasso.web.backend.processor import ConnectionManager, process_request
 import os
 
 logger = logging.getLogger("peacasso")
@@ -51,26 +49,6 @@ app.mount("/", StaticFiles(directory=static_folder_root, html=True), name="ui")
 api.mount("/files", StaticFiles(directory=files_static_root, html=True), name="files")
 
 
-# enable web socket connection for real time updates
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: List[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
-
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
-
-    async def send_personal_message(self, message: str, websocket: WebSocket):
-        await websocket.send_text(message)
-
-    async def broadcast(self, message: str):
-        for connection in self.active_connections:
-            await connection.send_text(message)
-
-
 manager = ConnectionManager()
 
 
@@ -80,11 +58,9 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            # parse data to json
             try:
                 request = SocketData(**json.loads(data))
                 await process_request(request, generator, websocket)
-                # await manager.send_personal_message(response, websocket)
             except Exception as e:
                 print("error: {}".format(e))
                 response = json.dumps({"type": "generate_complete", "data": {
