@@ -61,7 +61,7 @@ model_config: ModelConfig = ModelConfig(
     device="cuda:0" , # device ..cpu, cuda, cuda:0
     model="nitrosocke/mo-di-diffusion",
     revision="main", # HF model branch
-    token=None, # HF_TOKEN here
+    token=None, # HF_TOKEN here if needed
 )
 
 prompt = "victorian ampitheater of sand, pillars with statues on top, lamps on ground, by peter mohrbacher dan mumford craig mullins nekro, cgsociety, pixiv, volumetric light, 3 d render"
@@ -75,14 +75,17 @@ prompt_config = GeneratorConfig(
     return_intermediates=True, # return intermediate images during diffusion sampling
     seed=6010691039
 )
-prompt_result = gen.generate(prompt_config)
+result = gen.generate(prompt_config)
 result = gen.generate(prompt_config)
 for i, image in enumerate(result["images"]):
     image.save(f"image_{i}.png")
+
+# result["intermediates"] contains the intermediate images
 ```
 
 ![](https://github.com/victordibia/peacasso/blob/master/docs/images/prompt_result.png?raw=true)
 
+visualizing intermediate images during the diffusion loop.
 ![](https://github.com/victordibia/peacasso/blob/master/docs/images/intermediates.png?raw=true)
 
 ## Design Philosophy
