@@ -9,6 +9,7 @@ import torch
 import time
 
 from peacasso.datamodel import GeneratorConfig, ModelConfig
+from peacasso.applications import Runner
 from peacasso.pipelines import StableDiffusionPipeline
 
 logger = logging.getLogger(__name__)
@@ -31,14 +32,15 @@ class ImageGenerator:
         self.pipe = StableDiffusionPipeline.from_pretrained(
             model_config.model,
             revision=model_config.revision,
-            # torch_dtype=torch.float16 if model_config.revision == "fp16" else torch.float32,
             torch_dtype=torch.float16,
             use_auth_token=model_config.token
         ).to(device)
 
+        self.runner = Runner()
+
     def generate(self, config: GeneratorConfig) -> Image:
         """Generate image from prompt"""
-        return self.pipe(**asdict(config))
+        return self.runner.run(config, self.pipe)
 
     def reload(self, model_config) -> None:
         """Clear pipe models from memory, reload pipe with new parameters"""

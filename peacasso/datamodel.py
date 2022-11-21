@@ -40,6 +40,9 @@ class GeneratorConfig:
     callback: Optional[Any] = None
     prompt_weights: Optional[List[float]] = None
     use_prompt_weights: bool = False
+    application: Optional[Any] = None
+    text_embeddings: Optional[Any] = None
+    filter_nsfw: bool = True
 
 
 @dataclass
@@ -48,3 +51,11 @@ class SocketData:
     data: Any
     type: str
     token: Optional[str] = None
+
+
+@dataclass
+class ModelResponse:
+    """Response from the model"""
+    status: bool
+    message: Optional[str] = None
+    data: Optional[Any] = None
