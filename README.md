@@ -49,7 +49,8 @@ peacasso ui  --port=8080
 
 Then navigate to http://localhost:8080/ in your browser.
 
-You can also use the python api by running the following command:
+You can also use the python api by running the following command.
+Note that each generation is parameterized by a [`GeneratorConfig`](peacasso/datamodel.py) object.
 
 ```python
 
@@ -85,12 +86,32 @@ for i, image in enumerate(result["images"]):
 
 ![](https://github.com/victordibia/peacasso/blob/master/docs/images/prompt_result.png?raw=true)
 
-visualizing intermediate images during the diffusion loop.
+Visualizing intermediate images during the diffusion loop.
 ![](https://github.com/victordibia/peacasso/blob/master/docs/images/intermediates.png?raw=true)
+
+You can also interpolate between along several dimensions e.g., latents used in the diffusion process (based on seed, image, mask or combinations) and text embeddings used to guide the diffusion process. You can do this by modifying the `application` field in `GeneratorConfig`. See the [colab notebook](https://colab.research.google.com/github/victordibia/peacasso/blob/master/notebooks/tutorial.ipynb) for more details.
+
+```python
+interpolation_config = GeneratorConfig(
+    prompt="sunset by the sea",
+    num_inference_steps=30,
+    application={
+        "type": "interpolate",
+        "config": {
+            "num_steps": 30,
+            "seed": {
+                "start": 100034,
+                "end": 400034}}
+            "text": {
+                "start": "sunset by the sea",
+                "end": "sunrise by the sea"
+            }
+    )
+```
 
 ## Design Philosophy
 
-Features in `Peacasso` are being designed based on insights from communication theory [^1] and also research on Human-AI interaction design [^2]. Learn more about the design and components in peacasso in the paper [here](https://github.com/victordibia/peacasso/blob/master/docs/images/paper.pdf).
+Features in `Peacasso` are being designed based on insights from communication theory [^1] and also research on Human-AI interaction design [^2]. Learn more about the design and components in peacasso in the paper draft [here](https://github.com/victordibia/peacasso/blob/master/docs/images/paper.pdf).
 
 <img width="100%" src="https://github.com/victordibia/peacasso/blob/master/docs/images/mrt.png?raw=true" />
 
