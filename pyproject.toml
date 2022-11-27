@@ -20,14 +20,14 @@ classifiers = [
 dependencies = [
     "transformers", 
     "scipy",
+    "accelerate",
     "ftfy",
-    "diffusers==0.6.0",
+    "diffusers==0.9.0",
     "torch",
     "pydantic",
     "uvicorn",
     "typer",
-    "fastapi", 
-    "websockets",
+    "fastapi",  
 ]
 dynamic = ["version"]
 
