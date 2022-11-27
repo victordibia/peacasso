@@ -1,3 +1,5 @@
+import copy
+from dataclasses import asdict
 import json
 import logging
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -5,9 +7,11 @@ from fastapi.staticfiles import StaticFiles
 import os
 from peacasso.generator import ImageGenerator
 from fastapi.middleware.cors import CORSMiddleware
-from peacasso.datamodel import ModelConfig, SocketData
+from peacasso.datamodel import GeneratorConfig, ModelConfig, SocketData, WebRequestData
+from peacasso.utils import base64_to_pil, pil_to_base64, sanitize_config
 from peacasso.web.backend.processor import ConnectionManager, process_request
 import os
+import traceback
 
 logger = logging.getLogger("peacasso")
 
@@ -22,7 +26,7 @@ model_config = ModelConfig(
 )
 logger.info(
     ">> Loading Imagenerator pipeline with config. " + str(model_config))
-generator = ImageGenerator(model_config)
+generator =  ImageGenerator(model_config)
 logger.info(">> Imagenerator pipeline loaded.")
 
 app = FastAPI()
@@ -49,26 +53,60 @@ app.mount("/", StaticFiles(directory=static_folder_root, html=True), name="ui")
 api.mount("/files", StaticFiles(directory=files_static_root, html=True), name="files")
 
 
-manager = ConnectionManager()
+# manager = ConnectionManager()
 
 
-@api.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+# @api.websocket("/ws")
+# async def websocket_endpoint(websocket: WebSocket):
+#     await manager.connect(websocket)
+#     try:
+#         while True:
+#             data = await websocket.receive_text()
+#             try:
+#                 request = SocketData(**json.loads(data))
+#                 await process_request(request, generator, websocket)
+#             except Exception as e:
+#                 print("error: {}".format(e))
+#                 response = json.dumps({"type": "generate_complete", "data": {
+#                     "status": {"status": False, "message": str("{}".format(e))},
+#                 }})
+#                 await websocket.send_text(response)
+#                 continue
+
+#     except WebSocketDisconnect:
+#         manager.disconnect(websocket)
+#         await manager.broadcast(f"Client  left the chat")
+
+
+@api.post("/generate")
+def generate(request: WebRequestData) -> str:
+    """Generate an image given some prompt"""
+
+    result = None
     try:
-        while True:
-            data = await websocket.receive_text()
-            try:
-                request = SocketData(**json.loads(data))
-                await process_request(request, generator, websocket)
-            except Exception as e:
-                print("error: {}".format(e))
-                response = json.dumps({"type": "generate_complete", "data": {
-                    "status": {"status": False, "message": str("{}".format(e))},
-                }})
-                await websocket.send_text(response)
-                continue
-
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
-        await manager.broadcast(f"Client  left the chat")
+        if request.type == "generate":
+            prompt_config = request.config
+            sanitized_config = asdict(sanitize_config(copy.deepcopy(prompt_config))) 
+            if prompt_config.init_image:
+                prompt_config.init_image, _ = base64_to_pil(prompt_config.init_image)
+            if prompt_config.mask_image:
+                _, prompt_config.mask_image = base64_to_pil(prompt_config.mask_image)
+            response = None 
+            try: 
+                result = generator.generate(prompt_config)
+                images = []
+                for image in result["images"]: # convert pil image to base64 and prepend with data uri
+                    images.append("data:image/png;base64, " + pil_to_base64(image))
+                result["images"] = images  
+                response = {"status": True, "status_message": "success", "config": sanitized_config, "result": result} 
+                
+            except Exception as e: 
+                traceback.print_exc()
+                response =  {"status": False, "status_message": str(e), "config": sanitized_config, "result": result}
+            return response
+        else:
+            return {"status": False, "status_message": "invalid request type"}            
+    except Exception as e:
+        traceback.print_exc()
+        return {"status": False, "status_message": str(e)}
+     

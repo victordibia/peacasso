@@ -38,14 +38,6 @@ async def process_request(request: SocketData, generator: ImageGenerator, websoc
     if request.type == "generate":
         prompt_config = GeneratorConfig(**request.data["config"])
         sanitized_config = asdict(sanitize_config(copy.deepcopy(prompt_config)))
-
-        # def generator_callback(i: int, t: int, latents: torch.FloatTensor, images: PIL.Image.Image):
-        #     """Callback for generator"""
-
-        #     asyncio.get_event_loop().create_task(websocket.send_text(json.dumps(
-        #         {"type": "generator_progress", "data": {"i": i, "config": sanitized_config}})))
-
-        # generator.generate(request.data, socket=socket)
         if prompt_config.init_image is not None:
             prompt_config.init_image, _ = base64_to_pil(prompt_config.init_image)
         if prompt_config.mask_image:
