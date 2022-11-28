@@ -11,6 +11,7 @@ import time
 from peacasso.datamodel import GeneratorConfig, ModelConfig
 from peacasso.applications import Runner
 from peacasso.pipelines import StableDiffusionPipeline
+from diffusers import DPMSolverMultistepScheduler
 
 logger = logging.getLogger(__name__)
 
@@ -25,16 +26,24 @@ class ImageGenerator:
 
         self.create_model(model_config)
 
-    def create_model(self, model_config: ModelConfig):
-        # assert model_config. token is not None, "HF_API_TOKEN environment variable must be set."
-
-        device = model_config.device if torch.cuda.is_available() else "cpu"
+    def create_model(self, model_config: ModelConfig): 
+        if model_config.device == None:
+            if torch.cuda.is_available():
+                device = "cuda"
+            elif torch.backends.mps.is_available():
+                device = "mps"
+            else:
+                device = "cpu"
+        else:
+            device = model_config.device 
+            
         self.pipe = StableDiffusionPipeline.from_pretrained(
             model_config.model,
             revision=model_config.revision,
-            torch_dtype=torch.float16,
+            torch_dtype=torch.float16 if "cuda" in device else torch.float32,
             use_auth_token=model_config.token
         ).to(device)
+        self.pipe.scheduler = DPMSolverMultistepScheduler.from_config(self.pipe.scheduler.config)
 
         self.runner = Runner()
 
