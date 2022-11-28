@@ -47,7 +47,7 @@ You can use the library from the ui by running the following command:
 peacasso ui  --port=8080
 ```
 
-Then navigate to http://localhost:8080/ in your browser.
+Then navigate to http://localhost:8080/ in your browser. Note that you can also pass flags like `--model` (huggingface model) and `--device` (cuda, cpu, mps) to the command above to specify the model and device to use.
 
 You can also use the python api by running the following command.
 Note that each generation is parameterized by a [`GeneratorConfig`](peacasso/datamodel.py) object.
@@ -149,7 +149,6 @@ If you use `peacasso` for in your research or adopt the design guidelines used t
       year={2022},
       publisher={GitHub},
       journal={GitHub repository},
-      year={2021},
       primaryClass={cs.CV}
 }
 ```
