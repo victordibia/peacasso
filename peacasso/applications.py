@@ -9,7 +9,7 @@ import torch
 from tqdm import tqdm
 
 from peacasso.datamodel import GeneratorConfig
-from peacasso.utils import preprocess_image, preprocess_mask, slerp
+from peacasso.utils import lerp, preprocess_image, preprocess_mask, slerp
 from peacasso.pipelines import StableDiffusionPipeline
 
 logger = logging.getLogger("peacasso")
@@ -213,6 +213,7 @@ class Runner:
             if "type" in config.application:
                 app_type = config.application["type"]
                 app_config = config.application["config"]
+                # slerp = app_config["function"] if "function" in app_config else lerp
                 if app_type == "interpolate":
                     config.num_images = 1  # batch size must be 1 for interpolation
                     if app_config is None:

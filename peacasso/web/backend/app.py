@@ -1,15 +1,13 @@
 import copy
 from dataclasses import asdict
-import json
 import logging
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import os
 from peacasso.generator import ImageGenerator
 from fastapi.middleware.cors import CORSMiddleware
-from peacasso.datamodel import GeneratorConfig, ModelConfig, SocketData, WebRequestData
+from peacasso.datamodel import ModelConfig, WebRequestData
 from peacasso.utils import base64_to_pil, pil_to_base64, sanitize_config
-from peacasso.web.backend.processor import ConnectionManager, process_request
 import os
 import traceback
 
@@ -51,31 +49,6 @@ os.makedirs(files_static_root, exist_ok=True)
 # mount peacasso front end UI files
 app.mount("/", StaticFiles(directory=static_folder_root, html=True), name="ui")
 api.mount("/files", StaticFiles(directory=files_static_root, html=True), name="files")
-
-
-# manager = ConnectionManager()
-
-
-# @api.websocket("/ws")
-# async def websocket_endpoint(websocket: WebSocket):
-#     await manager.connect(websocket)
-#     try:
-#         while True:
-#             data = await websocket.receive_text()
-#             try:
-#                 request = SocketData(**json.loads(data))
-#                 await process_request(request, generator, websocket)
-#             except Exception as e:
-#                 print("error: {}".format(e))
-#                 response = json.dumps({"type": "generate_complete", "data": {
-#                     "status": {"status": False, "message": str("{}".format(e))},
-#                 }})
-#                 await websocket.send_text(response)
-#                 continue
-
-#     except WebSocketDisconnect:
-#         manager.disconnect(websocket)
-#         await manager.broadcast(f"Client  left the chat")
 
 
 @api.post("/generate")
