@@ -93,3 +93,8 @@ def slerp(t, v0, v1, DOT_THRESHOLD=0.9995):
             v2 = torch.from_numpy(v2).to(input_device)
 
         return v2
+
+
+def lerp(t, v0, v1):
+    """ helper function to linearly interpolate two arrays v1 v2 """
+    return (1 - t) * v0 + t * v1
