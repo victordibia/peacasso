@@ -139,8 +139,8 @@ class StableDiffusionPipeline(DiffusionPipeline):
                 prompt, str) or (
                 use_prompt_weights and prompt_weights is not None)) else len(prompt)
 
-        self.scheduler.set_timesteps(num_inference_steps)
-        timesteps_tensor = self.scheduler.timesteps.to(self.device)
+        self.scheduler.set_timesteps(num_inference_steps, device=self.device)
+        timesteps = self.scheduler.timesteps
 
         # here `guidance_scale` is defined analog to the guidance weight `w` of equation (2)
         # of the Imagen paper: https://arxiv.org/pdf/2205.11487.pdf . `guidance_scale = 1`
@@ -148,23 +148,26 @@ class StableDiffusionPipeline(DiffusionPipeline):
         do_classifier_free_guidance = guidance_scale > 1.0
 
         if init_image:
+
             init_latents_orig = latents
             offset = self.scheduler.config.get("steps_offset", 0)
             init_timestep = int(num_inference_steps * strength) + offset
             init_timestep = min(init_timestep, num_inference_steps)
 
-            timesteps = self.scheduler.timesteps[-init_timestep]
-            timesteps = torch.tensor([timesteps] * batch_size * num_images, device=self.device)
+            t_start = max(num_inference_steps - init_timestep + offset, 0)
+            timesteps = self.scheduler.timesteps[t_start:]
+            print(t_start, num_inference_steps, "t_start and num_inference_steps")
+            num_inference_steps = num_inference_steps - t_start
+
+            latent_timestep = timesteps[:1].repeat(batch_size * num_images)
 
             # add noise to latents using the timesteps
             noise = torch.randn(
-                latents.shape,
+                init_latents_orig.shape,
                 generator=generator,
                 device=self.device,
                 dtype=latents.dtype)
-            latents = self.scheduler.add_noise(latents, noise, timesteps)
-            # t_start = max(num_inference_steps - init_timestep + offset, 0)
-            # timesteps = self.scheduler.timesteps[t_start:].to(self.device)
+            latents = self.scheduler.add_noise(init_latents_orig, noise, latent_timestep)
 
         # prepare extra kwargs for the scheduler step, since not all schedulers have the same signature
         # eta (η) is only used with the DDIMScheduler, it will be ignored for other schedulers.
@@ -175,7 +178,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
         if accepts_eta:
             extra_step_kwargs["eta"] = eta
 
-        for i, t in enumerate(self.progress_bar(timesteps_tensor)):
+        for i, t in enumerate(self.progress_bar(timesteps)):
             # expand the latents if we are doing classifier free guidance
             latent_model_input = torch.cat(
                 [latents] * 2) if do_classifier_free_guidance else latents
