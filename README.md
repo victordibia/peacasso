@@ -89,25 +89,26 @@ for i, image in enumerate(result["images"]):
 Visualizing intermediate images during the diffusion loop.
 ![](https://github.com/victordibia/peacasso/blob/master/docs/images/intermediates.png?raw=true)
 
-You can also interpolate between along several dimensions e.g., latents used in the diffusion process (based on seed, image, mask or combinations) and text embeddings used to guide the diffusion process. You can do this by modifying the `application` field in `GeneratorConfig`. See the [colab notebook](https://colab.research.google.com/github/victordibia/peacasso/blob/master/notebooks/tutorial.ipynb) for more details.
+You can also interpolate between along several dimensions e.g., `latents` used in the diffusion process (based on seed, image, mask or combinations) and `text embeddings` used to guide the diffusion process. You can do this by modifying the `application` field in `GeneratorConfig`. See the [colab notebook](https://colab.research.google.com/github/victordibia/peacasso/blob/master/notebooks/interpolation.ipynb) for more details.
+
+The config below shows how to interpolate between two prompts and two latents (based on provided start and end images).
 
 ```python
 interpolation_config = GeneratorConfig(
-    prompt="sunset by the sea",
-    num_inference_steps=30,
+    prompt=start_prompt,
+    num_inference_steps=40,
+    seed=3167288399,
+    strength=1,
     application={
-        "type": "interpolate",
-        "config": {
-            "num_steps": 30,
-            "seed": {
-                "start": 100034,
-                "end": 400034}}
-            "text": {
-                "start": "sunset by the sea",
-                "end": "sunrise by the sea"
+            "type": "interpolate",
+            "config": {"num_steps": 60,
+            "image": {"start": start_image, "end":end_image} ,
+            "prompt": {"start": start_prompt, "end": end_prompt}
             }
-    )
+})
 ```
+
+![](https://github.com/victordibia/peacasso/blob/master/docs/images/image_interpolation.png?raw=true)
 
 ## Design Philosophy
 
@@ -124,7 +125,7 @@ A general vision for the Peacasso architecture is shown below (parts of this are
 - [x] Command line interface
 - [x] UI Features. Query models with multiple parametrs
   - [x] Prompting: Text prompting (text2img), Image based prompting (img2img), Inpainting (img2img)
-  - [x] Latent space interpolation
+  - [x] Latent space interpolation (see [notebook](notebooks/interpolation.ipynb)).
   - [ ] Full Editor (for outpainting) (see tutorial [notebook](https://github.com/victordibia/peacasso/blob/master/notebooks/tutorial.ipynb) )
 - [ ] Experimentation tools
   - [x] Save intermediate images in the sampling loop
