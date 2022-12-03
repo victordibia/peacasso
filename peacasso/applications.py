@@ -39,6 +39,7 @@ class Runner:
                 config.prompt, str) or (
                 config.use_prompt_weights and config.prompt_weights is not None)) else len(
             config.prompt)
+        latents_orig = None
         # get latent vector
         if config.init_image is None:  # text prompt mode
             if config.height % 8 != 0 or config.width % 8 != 0:
@@ -87,8 +88,9 @@ class Runner:
             # expand init_latents for batch_size
             init_latents = torch.cat([init_latents] * (batch_size * config.num_images), dim=0)
 
-            # handle mask if provided
-            if init_image is not None and config.mask_image is not None:
+            pipe.scheduler.set_timesteps(config.num_inference_steps, device=pipe.device)
+
+            if config.mask_image is not None:
                 if not isinstance(config.mask_image, torch.FloatTensor):
                     mask_image = preprocess_mask(config.mask_image)
                 mask_image = mask_image.to(device=pipe.device, dtype=latents_dtype)
@@ -99,8 +101,26 @@ class Runner:
                     raise ValueError(
                         f"The mask {str(mask.shape)} and init_latents {str(init_latents.shape)} should be the same size!")
 
-            latents = init_latents
-        return latents, mask
+            latents_orig = init_latents
+            offset = pipe.scheduler.config.get("steps_offset", 0)
+            init_timestep = int(config.num_inference_steps * (config.strength)) + offset
+            init_timestep = min(init_timestep + 1, config.num_inference_steps)
+
+            t_start = max(config.num_inference_steps - init_timestep + offset, 0)
+            timesteps = pipe.scheduler.timesteps[t_start:]
+
+            latent_timestep = timesteps[:1].repeat(batch_size * config.num_images)
+
+            # # add noise to latents using the timesteps
+            noise = torch.randn(
+                latents_orig.shape,
+                generator=generator,
+                device=pipe.device,
+                dtype=latents_orig.dtype)
+
+            latents = pipe.scheduler.add_noise(latents_orig, noise, latent_timestep)
+
+        return latents, latents_orig, mask
 
     def get_text_embedding(self, config: GeneratorConfig, pipe: StableDiffusionPipeline) -> None:
         """Get text embedding"""
@@ -201,11 +221,12 @@ class Runner:
         """Run application"""
         if config.application is None or "type" not in config.application:
             text_embeddings = self.get_text_embedding(config, pipe)
-            latents, mask = self.get_latents(config, pipe)
+            latents, latents_orig, mask = self.get_latents(config, pipe)
 
             config = asdict(config)
             config["text_embeddings"] = text_embeddings
             config["latents"] = latents
+            config["latents_orig"] = latents_orig
             config["mask"] = mask
             return pipe(**config)
 
@@ -234,8 +255,11 @@ class Runner:
                             if "image" in app_config:
                                 start_config.init_image = app_config["image"]["start"]
                                 end_config.init_image = app_config["image"]["end"]
-                            start_latents, start_mask = self.get_latents(start_config, pipe)
-                            end_latents, end_mask = self.get_latents(end_config, pipe)
+                            start_latents, start_latents_orig, start_mask = self.get_latents(
+                                start_config,
+                                pipe)
+                            end_latents, end_latents_orig, end_mask = self.get_latents(
+                                end_config, pipe)
                             if "prompt" in app_config:
                                 start_config.prompt = app_config["prompt"]["start"]
                                 end_config.prompt = app_config["prompt"]["end"]
@@ -248,13 +272,16 @@ class Runner:
                             conf_dict = asdict(config)
                             for t in tqdm(np.linspace(0, 1, num_steps)):
                                 latents = slerp(float(t), start_latents, end_latents)
+                                latents_orig = slerp(float(t), start_latents_orig, end_latents_orig)
                                 if "prompt" in app_config:
                                     text_embeddings = slerp(
                                         float(t), start_text_embeddings, end_text_embeddings)
                                 # mask = slerp(float(t), start_mask, end_mask)
                                 conf_dict["text_embeddings"] = text_embeddings
                                 conf_dict["latents"] = latents
+                                conf_dict["latents_orig"] = latents_orig
                                 conf_dict["mask"] = end_mask
+                                conf_dict["disable_progress_bar"] = True
                                 result = pipe(**conf_dict)
                                 interpolation_results.append(result)
                             return interpolation_results
