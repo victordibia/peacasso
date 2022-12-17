@@ -70,6 +70,9 @@ def preprocess_mask(mask):
 def slerp(t, v0, v1, DOT_THRESHOLD=0.9995):
     """ helper function to spherically interpolate two arrays v1 v2 """
 
+    if v0 is None or v1 is None:
+        return None
+
     with torch.no_grad():
         if not isinstance(v0, np.ndarray):
             inputs_are_torch = True

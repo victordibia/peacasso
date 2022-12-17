@@ -78,6 +78,7 @@ def generate(request: WebRequestData) -> str:
                 response =  {"status": False, "status_message": str(e), "config": sanitized_config, "result": result}
             return response
         else:
+            print("invalid request type")
             return {"status": False, "status_message": "invalid request type"}            
     except Exception as e:
         traceback.print_exc()

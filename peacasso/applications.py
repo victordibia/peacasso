@@ -219,6 +219,16 @@ class Runner:
 
     def run(self, config: GeneratorConfig, pipe: StableDiffusionPipeline) -> None:
         """Run application"""
+
+        # check if config.init_image size is same as config.width and
+        # config.height, else resize and warn
+        if config.init_image is not None:
+            if config.init_image.size != (config.width, config.height):
+                config.init_image = config.init_image.resize((config.width, config.height))
+                logger.warning(
+                    f"Resizing init_image to ({config.width}, {config.height})."
+                )
+
         if config.application is None or "type" not in config.application:
             text_embeddings = self.get_text_embedding(config, pipe)
             latents, latents_orig, mask = self.get_latents(config, pipe)
