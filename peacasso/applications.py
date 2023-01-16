@@ -185,11 +185,13 @@ class Runner:
                     f" {type(config.prompt)}.")
             elif isinstance(config.negative_prompt, str):
                 uncond_tokens = [config.negative_prompt]
-            elif batch_size != len(config.negative_prompt):
-                raise ValueError(
-                    f"`negative_prompt`: {config.negative_prompt} has batch size {len(config.negative_prompt)}, but `prompt`:"
-                    f" {config.prompt} has batch size {batch_size}. Please make sure that passed `negative_prompt` matches"
-                    " the batch size of `prompt`.")
+            elif isinstance(config.negative_prompt, list):
+                uncond_tokens = [",".join(config.negative_prompt)]
+            # elif batch_size != len(config.negative_prompt):
+            #     raise ValueError(
+            #         f"`negative_prompt`: {config.negative_prompt} has batch size {len(config.negative_prompt)}, but `prompt`:"
+            #         f" {config.prompt} has batch size {batch_size}. Please make sure that passed `negative_prompt` matches"
+            #         " the batch size of `prompt`.")
             else:
                 uncond_tokens = config.negative_prompt
 
