@@ -47,6 +47,10 @@ class WebRequestData:
     type: str
     config: GeneratorConfig
 
+@dataclass
+class PreviewQuery:
+    """Query data to preview a prompt"""
+    prompt: str
 
 @dataclass
 class SocketData:
