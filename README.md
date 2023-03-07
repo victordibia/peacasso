@@ -141,7 +141,7 @@ This work builds on the stable diffusion model and code is adapted from the Hugg
 
 ## Citation
 
-If you use `peacasso` for in your research or adopt the design guidelines used to build `peacasso`, please consider citing as follows:
+If you use `peacasso` for in your research or adopt the design guidelines used to build `peacasso`, please consider citing the [paper](https://github.com/victordibia/peacasso/blob/master/docs/images/paper.pdf) as follows:
 
 ```bibtex
 @misc{dibia2022peacasso,
