@@ -56,6 +56,8 @@ api.mount("/files", StaticFiles(directory=files_static_root, html=True), name="f
 def generate(request: WebRequestData) -> str:
     """Generate an image given some prompt"""
 
+    # print("request received", request)
+
     result = None
     try:
         if request.type == "generate":
@@ -103,13 +105,12 @@ def preview(query: PreviewQuery) -> dict:
             "https://lexica.art/api/v1/search?q=" + query.prompt)
         if response.status_code == 200:
             data = response.json()
-             
+
             return {"status": True, "status_message": "success", "result": data}
-             
+
         else:
-            return {"status": False, "status_message": "error fetching preview image" + str(response.status_code)}
+            return {"status": False,
+                    "status_message": "error fetching preview image" + str(response.status_code)}
     except Exception as e:
         traceback.print_exc()
         return {"status": False, "status_message": str(e)}
-
-         
