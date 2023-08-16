@@ -1,6 +1,8 @@
 output/
 samples/
-
+.release.sh
+.azure 
+.vscode
 peacasso/gens
 peacasso/web/backend/files
 examples/experiment_results.json

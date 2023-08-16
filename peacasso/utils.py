@@ -16,7 +16,7 @@ def get_dirs(path: str) -> List[str]:
 
 def base64_to_pil(base64_string: str) -> Image:
     # base64_string = base64_string.replace("data:image/png;base64,", "")
-    base64_string = base64_string.split(",")[1]
+    base64_string = base64_string.split(",")[1] if "," in base64_string else base64_string
     img_bytes = base64.b64decode(base64_string)
     img = Image.open(io.BytesIO(img_bytes))
     # print number of channels

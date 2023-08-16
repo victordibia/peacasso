@@ -3,7 +3,7 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Peacasso" 
+name = "peacasso" 
 authors = [
   { name="Victor Dibia", email="victor.dibia@gmail.com" },
 ]
